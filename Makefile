@@ -1,0 +1,2 @@
+run: 
+	sudo cargo run 

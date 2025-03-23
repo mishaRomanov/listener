@@ -1,26 +1,38 @@
-use axum::routing::{get, post, Router};
-use tokio::net;
+use pcap;
+use std::collections::HashMap;
 
-mod config;
-mod handler;
+fn main() {
+    // Create a map where we store available devices.
+    let mut devices_hash_set: HashMap<String, pcap::Device> = HashMap::new();
 
-#[tokio::main]
-async fn main() {
-    // Creating Handler object.
-    let request_handler = handler::Handler::new();
+    println!("device:\t description");
+    for device in pcap::Device::list().expect("Failed to list devices").iter() {
+        // Insert each devices into a hashmap.
+        devices_hash_set.insert(device.name.clone(), device.clone());
+        println!(
+            "{}: {}",
+            device.name,
+            device
+                .desc
+                .clone()
+                .unwrap_or("description not available".to_string())
+        );
+    }
 
-    // Parsing config.
-    let cfg = config::GlobalConfig::new();
-
-    // Creating applicaton.
-    let app = Router::new().route("/", get(request_handler.greet()));
-
-    // Starting to listen on a binded port.
-    let listener = net::TcpListener::bind(format!("127.0.0.1:{}", cfg.port))
-        .await
-        .unwrap();
-
-    println!("starting server on {}...", cfg.port);
-
-    axum::serve(listener, app).await.unwrap();
+    //loop {
+    //    match devices_hash_set.get(&"en0".to_string()) {
+    //        Some(device) => {
+    //            device
+    //                .clone()
+    //                .open()
+    //                .unwrap()
+    //                .next_packet()
+    //                .unwrap()
+    //                .to_vec()
+    //                .iter()
+    //                .for_each(|elem| println!("{}", elem.to_ascii_lowercase().to_string()));
+    //        }
+    //        None => println!("en0 device not found"),
+    //    }
+    //}
 }
